@@ -1,0 +1,393 @@
+{
+  "name": "Enhanced SBDR Conversational Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crisp-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-crisp",
+      "name": "Crisp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "\n// Extract and structure message data from Crisp webhook\nconst webhookData = items[0].json;\nconst messageData = webhookData.data;\n\n// Extract basic message information\nconst messageText = messageData.content || '';\nconst sessionId = messageData.session_id;\nconst websiteId = messageData.website_id;\nconst userEmail = messageData.user?.email || null;\nconst userName = messageData.user?.nickname || 'Guest';\n\n// Extract additional context\nconst userAgent = messageData.user?.user_agent || '';\nconst referrer = messageData.user?.referrer || '';\nconst currentUrl = messageData.user?.current_url || '';\n\n// Store conversation context\nconst conversationContext = {\n  sessionId: sessionId,\n  websiteId: websiteId,\n  userEmail: userEmail,\n  userName: userName,\n  messageText: messageText,\n  userAgent: userAgent,\n  referrer: referrer,\n  currentUrl: currentUrl,\n  timestamp: new Date().toISOString(),\n  shopName: 'your-shop-name' // Replace with actual shop name\n};\n\nreturn [{\n  json: conversationContext\n}];\n"
+      },
+      "id": "extract-message-data",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-3.5-turbo"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\": \"system\", \"content\": \"You are an SBDR for TechHub Electronics. Respond professionally and helpfully to customer inquiries. Keep responses concise and focused on understanding customer needs.\"}, {\"role\": \"user\", \"content\": \"{{ $json.messageText }}\"}]"
+            },
+            {
+              "name": "max_tokens",
+              "value": 150
+            },
+            {
+              "name": "temperature",
+              "value": 0.7
+            }
+          ]
+        }
+      },
+      "id": "ai-processing",
+      "name": "AI Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "\n// Enhanced processing with SBDR agent logic\nconst aiResponse = items[0].json.choices[0].message.content;\nconst conversationData = items[0].json;\n\n// Import SBDR agent logic (simplified version for N8N)\nconst messageText = conversationData.messageText.toLowerCase();\n\n// Intent detection\nlet intent = 'general';\nlet needsQualification = false;\nlet needsProductInfo = false;\nlet needsHandoff = false;\nlet productCategory = null;\n\n// Enhanced intent detection\nif (messageText.includes('hello') || messageText.includes('hi') || messageText.includes('hey')) {\n  intent = 'greeting';\n  needsQualification = true;\n} else if (messageText.includes('laptop') || messageText.includes('computer')) {\n  intent = 'product_inquiry';\n  needsProductInfo = true;\n  needsQualification = true;\n  productCategory = 'laptop';\n} else if (messageText.includes('phone') || messageText.includes('smartphone')) {\n  intent = 'product_inquiry';\n  needsProductInfo = true;\n  needsQualification = true;\n  productCategory = 'smartphone';\n} else if (messageText.includes('price') || messageText.includes('cost') || messageText.includes('budget')) {\n  intent = 'pricing';\n  needsQualification = true;\n} else if (messageText.includes('order') || messageText.includes('shipping')) {\n  intent = 'order_status';\n} else if (messageText.includes('human') || messageText.includes('agent')) {\n  intent = 'handoff_request';\n  needsHandoff = true;\n}\n\n// Extract qualification data\nconst budgetMatch = messageText.match(/\\$?(\\d+(?:,\\d{3})*)/);\nconst budget = budgetMatch ? budgetMatch[1] : null;\n\n// Prepare enhanced response data\nconst responseData = {\n  sessionId: conversationData.sessionId,\n  websiteId: conversationData.websiteId,\n  aiResponse: aiResponse,\n  intent: intent,\n  needsQualification: needsQualification,\n  needsProductInfo: needsProductInfo,\n  needsHandoff: needsHandoff,\n  productCategory: productCategory,\n  extractedBudget: budget,\n  originalMessage: conversationData.messageText,\n  userName: conversationData.userName,\n  userEmail: conversationData.userEmail\n};\n\nreturn [{\n  json: responseData\n}];\n"
+      },
+      "id": "enhanced-processing",
+      "name": "Enhanced Processing",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "product-query",
+              "leftValue": "={{ $json.needsProductInfo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "product-query-check",
+      "name": "Product Query Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $('extract-message-data').item.json.shopName }}.myshopify.com/admin/api/2023-10/products.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "shopifyApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "10"
+            },
+            {
+              "name": "product_type",
+              "value": "={{ $json.productCategory }}"
+            },
+            {
+              "name": "status",
+              "value": "active"
+            }
+          ]
+        }
+      },
+      "id": "shopify-product-query",
+      "name": "Shopify Product Query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "\n// Generate final response with qualification questions and product info\nconst data = items[0].json;\nlet finalResponse = data.aiResponse;\n\n// Add product information if available\nif (data.needsProductInfo && items[1] && items[1].json && items[1].json.products) {\n  const products = items[1].json.products.slice(0, 3); // Top 3 products\n  if (products.length > 0) {\n    finalResponse += \"\\n\\nHere are some popular \" + data.productCategory + \" options:\\n\";\n    products.forEach((product, index) => {\n      const price = product.variants && product.variants[0] ? product.variants[0].price : 'N/A';\n      finalResponse += `${index + 1}. ${product.title} - $${price}\\n`;\n    });\n  }\n}\n\n// Add qualification questions if needed\nif (data.needsQualification && !data.needsHandoff) {\n  const questions = [];\n  \n  if (!data.extractedBudget) {\n    questions.push(\"What's your approximate budget for this purchase?\");\n  }\n  \n  if (data.intent === 'product_inquiry' && data.productCategory) {\n    questions.push(`What will you primarily use the ${data.productCategory} for?`);\n  } else if (data.intent === 'greeting') {\n    questions.push(\"Are you looking for any particular type of product today?\");\n  }\n  \n  if (questions.length > 0) {\n    finalResponse += \"\\n\\n\" + questions.slice(0, 2).join(\"\\n\");\n  }\n}\n\n// Add handoff message if needed\nif (data.needsHandoff) {\n  finalResponse += \"\\n\\nI'll connect you with one of our product specialists who can provide more detailed assistance.\";\n}\n\nreturn [{\n  json: {\n    ...data,\n    finalResponse: finalResponse\n  }\n}];\n"
+      },
+      "id": "generate-final-response",
+      "name": "Generate Final Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.crisp.chat/v1/website/{{ $('extract-message-data').item.json.websiteId }}/conversation/{{ $('extract-message-data').item.json.sessionId }}/message",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "crispApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.finalResponse }}"
+            },
+            {
+              "name": "from",
+              "value": "operator"
+            }
+          ]
+        }
+      },
+      "id": "send-response",
+      "name": "Send Response to Crisp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "handoff-needed",
+              "leftValue": "={{ $json.needsHandoff }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "handoff-check",
+      "name": "Handoff Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "\n// Notify human agents about qualified leads or handoff requests\nconst data = items[0].json;\n\n// Prepare notification data\nconst notification = {\n  type: 'agent_handoff',\n  priority: data.intent === 'handoff_request' ? 'high' : 'medium',\n  session_id: data.sessionId,\n  customer_info: {\n    name: data.userName,\n    email: data.userEmail,\n    budget: data.extractedBudget,\n    product_interest: data.productCategory,\n    intent: data.intent\n  },\n  conversation_summary: {\n    last_message: data.originalMessage,\n    ai_response: data.aiResponse\n  },\n  timestamp: new Date().toISOString()\n};\n\n// In a real implementation, this would send to:\n// - Slack channel\n// - Email notification\n// - CRM system\n// - Internal dashboard\n\nconsole.log('Handoff notification:', JSON.stringify(notification, null, 2));\n\nreturn [{\n  json: notification\n}];\n"
+      },
+      "id": "notify-human-agent",
+      "name": "Notify Human Agent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Message processed successfully"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Crisp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "AI Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Processing": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Processing": {
+      "main": [
+        [
+          {
+            "node": "Product Query Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Query Check": {
+      "main": [
+        [
+          {
+            "node": "Shopify Product Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify Product Query": {
+      "main": [
+        [
+          {
+            "node": "Generate Final Response",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Generate Final Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response to Crisp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Response to Crisp": {
+      "main": [
+        [
+          {
+            "node": "Handoff Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handoff Check": {
+      "main": [
+        [
+          {
+            "node": "Notify Human Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Human Agent": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

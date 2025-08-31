@@ -1,0 +1,314 @@
+{
+  "name": "SBDR Conversational Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crisp-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-crisp",
+      "name": "Crisp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract message data from Crisp webhook\nconst webhookData = items[0].json;\nconst messageText = webhookData.data.content;\nconst sessionId = webhookData.data.session_id;\nconst websiteId = webhookData.data.website_id;\nconst userEmail = webhookData.data.user?.email || null;\nconst userName = webhookData.data.user?.nickname || 'Guest';\n\n// Store conversation context\nconst conversationContext = {\n  sessionId: sessionId,\n  websiteId: websiteId,\n  userEmail: userEmail,\n  userName: userName,\n  messageText: messageText,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{\n  json: conversationContext\n}];"
+      },
+      "id": "extract-message-data",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-3.5-turbo"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\": \"system\", \"content\": \"You are an SBDR (Sales Business Development Representative) for an online electronics store. Your role is to: 1) Respond immediately to customer queries, 2) Qualify leads by asking about budget, product interest, and use case, 3) Provide basic product information, 4) Maintain a friendly, professional tone. Always try to understand the customer's needs and guide them toward making a purchase decision. If you cannot answer a question, offer to connect them with a human agent.\"}, {\"role\": \"user\", \"content\": \"{{ $json.messageText }}\"}]"
+            },
+            {
+              "name": "max_tokens",
+              "value": 150
+            },
+            {
+              "name": "temperature",
+              "value": 0.7
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ai-processing",
+      "name": "AI Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract AI response and determine next action\nconst aiResponse = items[0].json.choices[0].message.content;\nconst conversationData = items[0].json;\n\n// Simple intent detection based on keywords\nconst messageText = conversationData.messageText.toLowerCase();\nlet intent = 'general';\nlet needsQualification = false;\nlet needsProductInfo = false;\nlet needsHandoff = false;\n\n// Intent detection logic\nif (messageText.includes('price') || messageText.includes('cost') || messageText.includes('budget')) {\n  intent = 'pricing';\n  needsQualification = true;\n} else if (messageText.includes('laptop') || messageText.includes('phone') || messageText.includes('tablet') || messageText.includes('product')) {\n  intent = 'product_inquiry';\n  needsProductInfo = true;\n  needsQualification = true;\n} else if (messageText.includes('order') || messageText.includes('shipping') || messageText.includes('delivery')) {\n  intent = 'order_status';\n} else if (messageText.includes('human') || messageText.includes('agent') || messageText.includes('representative')) {\n  intent = 'handoff_request';\n  needsHandoff = true;\n}\n\n// Prepare response data\nconst responseData = {\n  sessionId: conversationData.sessionId,\n  websiteId: conversationData.websiteId,\n  aiResponse: aiResponse,\n  intent: intent,\n  needsQualification: needsQualification,\n  needsProductInfo: needsProductInfo,\n  needsHandoff: needsHandoff,\n  originalMessage: conversationData.messageText\n};\n\nreturn [{\n  json: responseData\n}];"
+      },
+      "id": "process-intent",
+      "name": "Process Intent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "qualification-needed",
+              "leftValue": "={{ $json.needsQualification }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "qualification-check",
+      "name": "Qualification Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate qualification questions based on intent\nconst data = items[0].json;\nlet qualificationResponse = data.aiResponse;\n\n// Add qualification questions based on intent\nif (data.intent === 'product_inquiry') {\n  qualificationResponse += \"\\n\\nTo help me find the perfect product for you, could you tell me:\\n1. What's your approximate budget?\\n2. What will you primarily use this for?\\n3. Are there any specific features you're looking for?\";\n} else if (data.intent === 'pricing') {\n  qualificationResponse += \"\\n\\nI'd be happy to help with pricing information! To provide you with the most relevant options, could you tell me:\\n1. Which product category interests you?\\n2. What's your budget range?\";\n}\n\nreturn [{\n  json: {\n    ...data,\n    finalResponse: qualificationResponse\n  }\n}];"
+      },
+      "id": "add-qualification",
+      "name": "Add Qualification Questions",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Use the AI response as-is for non-qualification scenarios\nconst data = items[0].json;\n\nreturn [{\n  json: {\n    ...data,\n    finalResponse: data.aiResponse\n  }\n}];"
+      },
+      "id": "standard-response",
+      "name": "Standard Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.crisp.chat/v1/website/{{ $json.websiteId }}/conversation/{{ $json.sessionId }}/message",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "crispApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.finalResponse }}"
+            },
+            {
+              "name": "from",
+              "value": "operator"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-response",
+      "name": "Send Response to Crisp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Message processed successfully"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Crisp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "AI Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Processing": {
+      "main": [
+        [
+          {
+            "node": "Process Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Intent": {
+      "main": [
+        [
+          {
+            "node": "Qualification Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qualification Check": {
+      "main": [
+        [
+          {
+            "node": "Add Qualification Questions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Standard Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Qualification Questions": {
+      "main": [
+        [
+          {
+            "node": "Send Response to Crisp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Standard Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response to Crisp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Response to Crisp": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "versionId": "1"
+}
+

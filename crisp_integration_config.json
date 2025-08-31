@@ -1,0 +1,140 @@
+{
+  "crisp_config": {
+    "api_base_url": "https://api.crisp.chat/v1",
+    "webhook_events": [
+      "message:send",
+      "session:created",
+      "session:updated"
+    ],
+    "webhook_endpoint": "/crisp-webhook",
+    "authentication": {
+      "type": "bearer_token",
+      "token_header": "Authorization",
+      "token_prefix": "Bearer"
+    },
+    "required_credentials": {
+      "identifier": "CRISP_IDENTIFIER",
+      "key": "CRISP_KEY"
+    }
+  },
+  "webhook_setup": {
+    "description": "Configure Crisp to send webhooks to N8N",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Login to Crisp Dashboard",
+        "url": "https://app.crisp.chat/",
+        "description": "Access your Crisp account dashboard"
+      },
+      {
+        "step": 2,
+        "action": "Navigate to Settings > Integrations",
+        "description": "Go to the integrations section in your website settings"
+      },
+      {
+        "step": 3,
+        "action": "Add Webhook Integration",
+        "description": "Create a new webhook integration",
+        "configuration": {
+          "webhook_url": "https://your-n8n-instance.com/webhook/crisp-webhook",
+          "events": [
+            "message:send",
+            "session:created"
+          ],
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      {
+        "step": 4,
+        "action": "Test Webhook",
+        "description": "Send a test message to verify webhook is working"
+      }
+    ]
+  },
+  "api_endpoints": {
+    "send_message": {
+      "url": "/website/{website_id}/conversation/{session_id}/message",
+      "method": "POST",
+      "description": "Send a message to a conversation",
+      "required_params": {
+        "website_id": "Your Crisp website identifier",
+        "session_id": "The conversation session ID"
+      },
+      "payload": {
+        "type": "text",
+        "content": "Message content",
+        "from": "operator"
+      }
+    },
+    "get_conversation": {
+      "url": "/website/{website_id}/conversation/{session_id}",
+      "method": "GET",
+      "description": "Get conversation details"
+    },
+    "update_visitor": {
+      "url": "/website/{website_id}/visitor/{session_id}",
+      "method": "PATCH",
+      "description": "Update visitor information",
+      "payload": {
+        "email": "visitor@example.com",
+        "nickname": "Visitor Name",
+        "data": {
+          "qualification_status": "qualified",
+          "budget": "1000",
+          "product_interest": "laptop"
+        }
+      }
+    }
+  },
+  "message_types": {
+    "text": {
+      "type": "text",
+      "content": "String message content"
+    },
+    "file": {
+      "type": "file",
+      "content": {
+        "name": "filename.pdf",
+        "url": "https://example.com/file.pdf",
+        "type": "application/pdf"
+      }
+    },
+    "picker": {
+      "type": "picker",
+      "content": {
+        "id": "product_selection",
+        "text": "Which product interests you?",
+        "choices": [
+          {
+            "value": "laptop",
+            "label": "Laptops"
+          },
+          {
+            "value": "smartphone",
+            "label": "Smartphones"
+          }
+        ]
+      }
+    }
+  },
+  "error_handling": {
+    "rate_limits": {
+      "requests_per_minute": 120,
+      "burst_limit": 20
+    },
+    "retry_strategy": {
+      "max_retries": 3,
+      "backoff_factor": 2,
+      "retry_codes": [429, 500, 502, 503, 504]
+    },
+    "fallback_responses": {
+      "api_error": "I'm experiencing technical difficulties. Please try again in a moment.",
+      "rate_limit": "I'm receiving a lot of messages right now. Please give me a moment to respond.",
+      "timeout": "I'm taking longer than usual to respond. Please bear with me."
+    }
+  }
+}
+

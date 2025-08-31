@@ -1,0 +1,214 @@
+{
+  "shopify_config": {
+    "api_base_url": "https://{shop_name}.myshopify.com/admin/api/2023-10",
+    "authentication": {
+      "type": "private_app",
+      "header": "X-Shopify-Access-Token",
+      "required_credentials": {
+        "access_token": "SHOPIFY_ACCESS_TOKEN",
+        "shop_name": "SHOPIFY_SHOP_NAME"
+      }
+    },
+    "webhook_verification": {
+      "header": "X-Shopify-Hmac-Sha256",
+      "secret": "SHOPIFY_WEBHOOK_SECRET"
+    }
+  },
+  "api_endpoints": {
+    "products": {
+      "list_products": {
+        "url": "/products.json",
+        "method": "GET",
+        "description": "Get all products",
+        "params": {
+          "limit": "250",
+          "status": "active",
+          "fields": "id,title,handle,product_type,vendor,tags,variants"
+        }
+      },
+      "get_product": {
+        "url": "/products/{product_id}.json",
+        "method": "GET",
+        "description": "Get specific product details"
+      },
+      "search_products": {
+        "url": "/products.json",
+        "method": "GET",
+        "description": "Search products by title or tag",
+        "params": {
+          "title": "search_term",
+          "product_type": "category",
+          "vendor": "brand_name"
+        }
+      }
+    },
+    "orders": {
+      "list_orders": {
+        "url": "/orders.json",
+        "method": "GET",
+        "description": "Get orders",
+        "params": {
+          "status": "any",
+          "limit": "50",
+          "fields": "id,order_number,email,financial_status,fulfillment_status,created_at"
+        }
+      },
+      "get_order": {
+        "url": "/orders/{order_id}.json",
+        "method": "GET",
+        "description": "Get specific order details"
+      },
+      "search_orders_by_email": {
+        "url": "/orders.json",
+        "method": "GET",
+        "description": "Find orders by customer email",
+        "params": {
+          "email": "customer@example.com"
+        }
+      }
+    },
+    "customers": {
+      "get_customer": {
+        "url": "/customers/{customer_id}.json",
+        "method": "GET",
+        "description": "Get customer details"
+      },
+      "search_customers": {
+        "url": "/customers/search.json",
+        "method": "GET",
+        "description": "Search customers by email or name",
+        "params": {
+          "query": "email:customer@example.com OR first_name:John"
+        }
+      }
+    }
+  },
+  "webhook_events": {
+    "orders": [
+      "orders/create",
+      "orders/updated",
+      "orders/paid",
+      "orders/cancelled",
+      "orders/fulfilled"
+    ],
+    "products": [
+      "products/create",
+      "products/update",
+      "products/delete"
+    ],
+    "customers": [
+      "customers/create",
+      "customers/update"
+    ]
+  },
+  "data_mapping": {
+    "product_info": {
+      "id": "product.id",
+      "name": "product.title",
+      "price": "product.variants[0].price",
+      "availability": "product.variants[0].inventory_quantity",
+      "description": "product.body_html",
+      "images": "product.images[0].src",
+      "category": "product.product_type",
+      "brand": "product.vendor"
+    },
+    "order_info": {
+      "order_id": "order.id",
+      "order_number": "order.order_number",
+      "status": "order.financial_status",
+      "fulfillment_status": "order.fulfillment_status",
+      "total": "order.total_price",
+      "customer_email": "order.email",
+      "created_date": "order.created_at",
+      "shipping_address": "order.shipping_address"
+    },
+    "customer_info": {
+      "customer_id": "customer.id",
+      "email": "customer.email",
+      "name": "customer.first_name + ' ' + customer.last_name",
+      "phone": "customer.phone",
+      "orders_count": "customer.orders_count",
+      "total_spent": "customer.total_spent"
+    }
+  },
+  "common_queries": {
+    "product_search": {
+      "description": "Search for products based on user query",
+      "example_queries": [
+        "laptop under $1000",
+        "gaming headphones",
+        "Apple products",
+        "smartphones with good camera"
+      ],
+      "search_strategy": {
+        "keywords": "Extract product type, brand, price range from user message",
+        "filters": "Apply product_type, vendor, price filters",
+        "sorting": "Sort by relevance, price, or popularity"
+      }
+    },
+    "order_lookup": {
+      "description": "Find order information for customer",
+      "required_info": [
+        "order_number",
+        "customer_email"
+      ],
+      "fallback": "If order not found, suggest checking email or order number"
+    },
+    "inventory_check": {
+      "description": "Check product availability",
+      "response_format": {
+        "in_stock": "Product is available for immediate shipping",
+        "low_stock": "Limited quantity available - order soon!",
+        "out_of_stock": "Currently out of stock. Expected restock: {date}",
+        "discontinued": "This product is no longer available"
+      }
+    }
+  },
+  "integration_functions": {
+    "product_recommendation": {
+      "description": "Recommend products based on user preferences",
+      "inputs": [
+        "budget",
+        "product_category",
+        "use_case",
+        "brand_preference"
+      ],
+      "logic": "Filter products by category and budget, then rank by features matching use case"
+    },
+    "price_comparison": {
+      "description": "Compare similar products in same category",
+      "inputs": [
+        "product_category",
+        "budget_range"
+      ],
+      "output": "List of 3-5 products with key differences highlighted"
+    },
+    "order_status_check": {
+      "description": "Check and explain order status to customer",
+      "status_explanations": {
+        "pending": "Your order is being processed and will ship soon",
+        "authorized": "Payment confirmed, preparing for shipment",
+        "partially_paid": "Partial payment received, please complete payment",
+        "paid": "Payment complete, order is being prepared",
+        "partially_refunded": "Partial refund processed",
+        "refunded": "Full refund has been processed",
+        "voided": "Order has been cancelled"
+      }
+    }
+  },
+  "error_handling": {
+    "api_errors": {
+      "401": "Authentication failed - check access token",
+      "403": "Insufficient permissions for this operation",
+      "404": "Resource not found",
+      "429": "Rate limit exceeded - please wait before retrying",
+      "500": "Shopify server error - please try again later"
+    },
+    "fallback_responses": {
+      "product_not_found": "I couldn't find that specific product. Let me show you some similar options.",
+      "order_not_found": "I couldn't locate that order. Please check your order number or email address.",
+      "api_unavailable": "I'm having trouble accessing product information right now. Please try again in a moment."
+    }
+  }
+}
+
