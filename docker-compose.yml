@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # Main Multi-Agent SBDR System
+  sbdr-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sbdr-multiagent
+    environment:
+      # OpenAI Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      
+      # Crisp Integration
+      - CRISP_IDENTIFIER=${CRISP_IDENTIFIER:-}
+      - CRISP_KEY=${CRISP_KEY:-}
+      - CRISP_WEBSITE_ID=${CRISP_WEBSITE_ID:-}
+      
+      # Shopify Integration
+      - SHOPIFY_SHOP_DOMAIN=${SHOPIFY_SHOP_DOMAIN:-}
+      - SHOPIFY_ACCESS_TOKEN=${SHOPIFY_ACCESS_TOKEN:-}
+      
+      # System Configuration
+      - ENVIRONMENT=docker
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      
+      # Database Configuration (if using)
+      - DATABASE_URL=postgresql://sbdr_user:sbdr_pass@postgres:5432/sbdr_db
+      - REDIS_URL=redis://redis:6379/0
+    
+    ports:
+      - "8000:8000"
+    
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./knowledge_base.json:/app/knowledge_base.json:ro
+    
+    command: ["python", "web_interface.py"]
+    
+    depends_on:
+      - postgres
+      - redis
+    
+    # restart: unless-stopped
+    
+    networks:
+      - sbdr-network
+    
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio; from multiagent_sbdr_system import AgentOrchestrator; print('Health check passed')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: sbdr-postgres
+    environment:
+      - POSTGRES_DB=sbdr_db
+      - POSTGRES_USER=sbdr_user
+      - POSTGRES_PASSWORD=sbdr_pass
+    
+    ports:
+      - "5432:5432"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    
+    # restart: unless-stopped
+    
+    networks:
+      - sbdr-network
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sbdr_user -d sbdr_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: sbdr-redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    
+    ports:
+      - "6379:6379"
+    
+    volumes:
+      - redis_data:/data
+    
+    # restart: unless-stopped
+    
+    networks:
+      - sbdr-network
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+networks:
+  sbdr-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

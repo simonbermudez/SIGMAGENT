@@ -1,124 +1,75 @@
 {
-  "general_info": {
-    "store_name": "TechHub Electronics",
-    "store_description": "Your premier destination for cutting-edge electronics and technology products",
-    "store_hours": "Customer service available Monday-Friday 9AM-6PM EST. Live chat available 24/7",
-    "contact_info": {
-      "phone": "1-800-TECH-HUB",
-      "email": "support@techhub.com",
-      "live_chat": "Available 24/7 on our website"
+  "products": {
+    "laptops": {
+      "gaming_laptops": {
+        "description": "High-performance laptops for gaming",
+        "features": ["Dedicated GPU", "High refresh rate displays", "Advanced cooling"],
+        "price_range": "$1000-$3000"
+      },
+      "business_laptops": {
+        "description": "Professional laptops for work",
+        "features": ["Long battery life", "Security features", "Lightweight design"],
+        "price_range": "$800-$2500"
+      },
+      "budget_laptops": {
+        "description": "Affordable laptops for basic tasks",
+        "features": ["Basic performance", "Essential software", "Cost-effective"],
+        "price_range": "$300-$800"
+      }
+    },
+    "smartphones": {
+      "flagship": {
+        "description": "Latest flagship smartphones",
+        "features": ["Advanced cameras", "Premium build", "Latest processors"],
+        "price_range": "$700-$1200"
+      },
+      "mid_range": {
+        "description": "Mid-range smartphones with good value",
+        "features": ["Good cameras", "Solid performance", "All-day battery"],
+        "price_range": "$300-$700"
+      }
     }
   },
   "policies": {
-    "shipping_policy": "We offer free shipping on orders over $50. Standard shipping takes 3-5 business days, and express shipping takes 1-2 business days. International shipping available to select countries.",
-    "return_policy": "We accept returns within 30 days of purchase. Items must be in original condition with all packaging and accessories. Return shipping is free for defective items.",
-    "warranty": "All products come with manufacturer warranty. Extended warranty options available at checkout. We also offer our own TechHub Protection Plan for additional coverage.",
-    "price_matching": "We offer price matching on identical products from authorized retailers. Contact us with the competitor's price for verification within 7 days of purchase.",
-    "payment_methods": "We accept all major credit cards (Visa, MasterCard, American Express, Discover), PayPal, Apple Pay, Google Pay, and financing options through Affirm."
-  },
-  "product_categories": {
-    "laptops": {
-      "description": "Wide selection of laptops for gaming, business, and personal use",
-      "price_range": "$299 - $3,999",
-      "popular_brands": ["Apple", "Dell", "HP", "Lenovo", "ASUS", "MSI"],
-      "key_features": ["Performance processors", "High-resolution displays", "Long battery life", "Lightweight designs"]
+    "shipping": {
+      "standard": "3-5 business days, free on orders over $50",
+      "express": "1-2 business days, $15 fee",
+      "overnight": "Next business day, $25 fee",
+      "international": "7-14 business days, calculated at checkout"
     },
-    "smartphones": {
-      "description": "Latest smartphones from top manufacturers",
-      "price_range": "$199 - $1,599",
-      "popular_brands": ["Apple", "Samsung", "Google", "OnePlus", "Xiaomi"],
-      "key_features": ["Advanced cameras", "5G connectivity", "Fast charging", "Premium displays"]
+    "return": {
+      "window": "30 days from purchase",
+      "condition": "Items must be in original condition with packaging",
+      "process": "Contact customer service or use online return portal",
+      "refund_time": "3-5 business days after we receive the item"
     },
-    "tablets": {
-      "description": "Tablets for productivity, entertainment, and creativity",
-      "price_range": "$149 - $1,299",
-      "popular_brands": ["Apple", "Samsung", "Microsoft", "Amazon"],
-      "key_features": ["Touch displays", "Stylus support", "Portable design", "Long battery life"]
-    },
-    "headphones": {
-      "description": "Premium headphones and earbuds for every lifestyle",
-      "price_range": "$29 - $599",
-      "popular_brands": ["Sony", "Bose", "Apple", "Sennheiser", "Audio-Technica"],
-      "key_features": ["Noise cancellation", "Wireless connectivity", "High-quality audio", "Comfortable fit"]
-    },
-    "smartwatches": {
-      "description": "Smart wearables for fitness and connectivity",
-      "price_range": "$99 - $799",
-      "popular_brands": ["Apple", "Samsung", "Garmin", "Fitbit"],
-      "key_features": ["Health monitoring", "GPS tracking", "Smart notifications", "Water resistance"]
-    },
-    "gaming": {
-      "description": "Gaming accessories and peripherals",
-      "price_range": "$19 - $299",
-      "popular_brands": ["Razer", "Logitech", "SteelSeries", "Corsair"],
-      "key_features": ["High precision", "RGB lighting", "Ergonomic design", "Professional grade"]
+    "warranty": {
+      "standard": "1 year manufacturer warranty on all products",
+      "extended": "Extended warranty options available at checkout",
+      "coverage": "Covers manufacturing defects, not accidental damage"
     }
   },
-  "qualification_questions": {
-    "budget_questions": [
-      "What's your approximate budget for this purchase?",
-      "Are you looking for something in a specific price range?",
-      "Do you have a budget in mind for this product?"
-    ],
-    "use_case_questions": [
-      "What will you primarily use this for?",
-      "Is this for work, personal use, or something specific?",
-      "What are your main requirements for this product?"
-    ],
-    "feature_questions": [
-      "Are there any specific features you're looking for?",
-      "What's most important to you in this product?",
-      "Do you have any particular specifications in mind?"
-    ],
-    "timeline_questions": [
-      "When are you looking to make this purchase?",
-      "Is this something you need right away?",
-      "Are you planning to buy soon or just researching?"
-    ]
-  },
-  "common_responses": {
-    "greeting": [
-      "Hello! Welcome to TechHub Electronics! How can I help you find the perfect tech product today?",
-      "Hi there! Thanks for visiting TechHub. What can I assist you with?",
-      "Welcome! I'm here to help you find exactly what you're looking for. What brings you to TechHub today?"
-    ],
-    "product_interest": [
-      "Great choice! We have an excellent selection of {product_category}. Let me help you find the perfect one.",
-      "Perfect! {product_category} is one of our most popular categories. What specific features are you looking for?",
-      "Excellent! I'd love to help you find the ideal {product_category}. Tell me more about your needs."
-    ],
-    "budget_response": [
-      "That's a great budget to work with! We have several excellent options in that range.",
-      "Perfect! With that budget, you'll have access to some really high-quality products.",
-      "Excellent budget range! Let me show you some of our best options in that price point."
-    ],
-    "handoff_triggers": [
-      "I'd be happy to connect you with one of our product specialists who can provide more detailed assistance.",
-      "Let me transfer you to one of our expert sales representatives who can help you further.",
-      "I'll connect you with a human agent who can provide personalized recommendations."
-    ]
-  },
-  "escalation_criteria": {
-    "qualified_lead": {
-      "budget_minimum": 100,
-      "has_specific_product_interest": true,
-      "engagement_level": "high"
+  "services": {
+    "technical_support": {
+      "hours": "Monday-Friday 9AM-6PM EST",
+      "channels": ["Phone", "Email", "Live Chat"],
+      "response_time": "Live chat: immediate, Email: within 24 hours"
     },
-    "complex_inquiry": {
-      "technical_questions": true,
-      "custom_requirements": true,
-      "bulk_orders": true
-    },
-    "immediate_handoff": {
-      "explicit_human_request": true,
-      "complaint_or_issue": true,
-      "existing_order_problem": true
+    "installation": {
+      "available": true,
+      "fee": "Starting at $50",
+      "scheduling": "Available within 48 hours in most areas"
     }
   },
-  "conversation_starters": {
-    "new_visitor": "Welcome to TechHub! Are you looking for something specific today, or would you like to browse our latest deals?",
-    "returning_visitor": "Welcome back to TechHub! How can I assist you today?",
-    "product_page_visitor": "I see you're interested in {product_name}. Would you like to know more about its features or compare it with similar products?"
+  "company": {
+    "about": "Leading technology retailer serving customers since 2010",
+    "locations": "Online store with nationwide shipping",
+    "mission": "Providing quality technology products with exceptional customer service"
+  },
+  "faq": {
+    "payment_methods": "We accept all major credit cards, PayPal, and financing options",
+    "price_matching": "We match competitor prices on identical items",
+    "bulk_orders": "Contact sales team for bulk pricing and corporate accounts",
+    "gift_cards": "Available in denominations from $25 to $500"
   }
 }
-

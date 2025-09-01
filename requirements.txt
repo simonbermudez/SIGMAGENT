@@ -1,0 +1,51 @@
+# Multi-Agent SBDR System Dependencies
+
+# Core Python dependencies
+asyncio-mqtt==0.16.1
+aiohttp==3.9.1
+aiofiles==23.2.1
+
+# Data handling and validation
+pydantic==2.5.2
+python-dotenv==1.0.0
+
+# HTTP and API clients
+httpx==0.25.2
+requests==2.31.0
+
+# JSON and data processing
+ujson==5.9.0
+python-dateutil==2.8.2
+
+# Logging and monitoring
+structlog==23.2.0
+python-json-logger==2.0.7
+
+# Testing frameworks
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+pytest-cov==4.1.0
+
+# Development tools
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Optional ML/AI enhancements
+openai==1.3.7
+numpy==1.25.2
+scikit-learn==1.3.2
+
+# Database support (optional)
+asyncpg==0.29.0
+redis==5.0.1
+
+# Webhook and web server support
+fastapi==0.104.1
+uvicorn==0.24.0
+gunicorn==21.2.0
+
+# Monitoring and health checks
+prometheus-client==0.19.0
+healthcheck==1.3.3
