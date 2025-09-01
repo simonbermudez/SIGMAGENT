@@ -63,9 +63,9 @@ graph TB
 
     %% Data Storage
     subgraph "Data Layer"
-        POSTGRES[(🗄️ PostgreSQL<br/>- Conversation history<br/>- User profiles<br/>- Analytics data)]
-        REDIS[(⚡ Redis<br/>- Session cache<br/>- Real-time state<br/>- Performance data)]
-        KB[📚 Knowledge Base<br/>- FAQs<br/>- Policies<br/>- Product info)]
+        POSTGRES[("🗄️ PostgreSQL<br/>- Conversation history<br/>- User profiles<br/>- Analytics data")]
+        REDIS[("⚡ Redis<br/>- Session cache<br/>- Real-time state<br/>- Performance data")]
+        KB["📚 Knowledge Base<br/>- FAQs<br/>- Policies<br/>- Product info"]
     end
 
     %% Monitoring
@@ -210,33 +210,33 @@ asyncio.run(main())
 
 ```mermaid
 flowchart TD
-    START[📥 Message Received] --> INTENT{🔍 Intent Analysis}
+    START["📥 Message Received"] --> INTENT{"🔍 Intent Analysis"}
     
-    INTENT -->|greeting, product_inquiry| SBDR_CHECK{SBDR Available?}
-    INTENT -->|order_status, account_mgmt| ACCOUNT_CHECK{Account Manager Available?}
-    INTENT -->|customer_success, onboarding| SUCCESS_CHECK{Customer Success Available?}
+    INTENT -->|"greeting, product_inquiry"| SBDR_CHECK{"SBDR Available?"}
+    INTENT -->|"order_status, account_mgmt"| ACCOUNT_CHECK{"Account Manager Available?"}
+    INTENT -->|"customer_success, onboarding"| SUCCESS_CHECK{"Customer Success Available?"}
     
-    SBDR_CHECK -->|Yes| SBDR[🤖 SBDR Agent<br/>Lead Qualification]
-    SBDR_CHECK -->|No| QUEUE1[⏳ Queue for SBDR]
+    SBDR_CHECK -->|"Yes"| SBDR["🤖 SBDR Agent<br/>Lead Qualification"]
+    SBDR_CHECK -->|"No"| QUEUE1["⏳ Queue for SBDR"]
     
-    ACCOUNT_CHECK -->|Yes| ACCOUNT[👔 Account Manager<br/>Order Management]
-    ACCOUNT_CHECK -->|No| QUEUE2[⏳ Queue for Account Mgr]
+    ACCOUNT_CHECK -->|"Yes"| ACCOUNT["👔 Account Manager<br/>Order Management"]
+    ACCOUNT_CHECK -->|"No"| QUEUE2["⏳ Queue for Account Mgr"]
     
-    SUCCESS_CHECK -->|Yes| SUCCESS[⭐ Customer Success<br/>Onboarding Support]
-    SUCCESS_CHECK -->|No| QUEUE3[⏳ Queue for Success]
+    SUCCESS_CHECK -->|"Yes"| SUCCESS["⭐ Customer Success<br/>Onboarding Support"]
+    SUCCESS_CHECK -->|"No"| QUEUE3["⏳ Queue for Success"]
     
-    SBDR --> QUALIFY{Qualification<br/>Complete?}
-    QUALIFY -->|Yes, Qualified| HANDOFF_ACCOUNT[📞 Handoff to Account Manager]
-    QUALIFY -->|Yes, Unqualified| HANDOFF_SUCCESS[📞 Handoff to Customer Success]
-    QUALIFY -->|In Progress| CONTINUE_SBDR[🔄 Continue SBDR]
+    SBDR --> QUALIFY{"Qualification<br/>Complete?"}
+    QUALIFY -->|"Yes, Qualified"| HANDOFF_ACCOUNT["📞 Handoff to Account Manager"]
+    QUALIFY -->|"Yes, Unqualified"| HANDOFF_SUCCESS["📞 Handoff to Customer Success"]
+    QUALIFY -->|"In Progress"| CONTINUE_SBDR["🔄 Continue SBDR"]
     
-    ACCOUNT --> ORDER_COMPLETE{Order<br/>Complete?}
-    ORDER_COMPLETE -->|Yes| HANDOFF_SUCCESS2[📞 Handoff to Customer Success]
-    ORDER_COMPLETE -->|No| CONTINUE_ACCOUNT[🔄 Continue Account Mgmt]
+    ACCOUNT --> ORDER_COMPLETE{"Order<br/>Complete?"}
+    ORDER_COMPLETE -->|"Yes"| HANDOFF_SUCCESS2["📞 Handoff to Customer Success"]
+    ORDER_COMPLETE -->|"No"| CONTINUE_ACCOUNT["🔄 Continue Account Mgmt"]
     
-    SUCCESS --> SATISFACTION{Customer<br/>Satisfied?}
-    SATISFACTION -->|Yes| COMPLETE[✅ Session Complete]
-    SATISFACTION -->|No| ESCALATE[🆙 Escalate to Human]
+    SUCCESS --> SATISFACTION{"Customer<br/>Satisfied?"}
+    SATISFACTION -->|"Yes"| COMPLETE["✅ Session Complete"]
+    SATISFACTION -->|"No"| ESCALATE["🆙 Escalate to Human"]
     
     QUEUE1 --> SBDR
     QUEUE2 --> ACCOUNT
@@ -248,19 +248,6 @@ flowchart TD
     
     CONTINUE_SBDR --> SBDR
     CONTINUE_ACCOUNT --> ACCOUNT
-    
-    %% Styling
-    classDef startEnd fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef agent fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef action fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef queue fill:#fff8e1,stroke:#f57f17,stroke-width:2px
-    
-    class START,COMPLETE startEnd
-    class INTENT,SBDR_CHECK,ACCOUNT_CHECK,SUCCESS_CHECK,QUALIFY,ORDER_COMPLETE,SATISFACTION decision
-    class SBDR,ACCOUNT,SUCCESS agent
-    class HANDOFF_ACCOUNT,HANDOFF_SUCCESS,HANDOFF_SUCCESS2,CONTINUE_SBDR,CONTINUE_ACCOUNT,ESCALATE action
-    class QUEUE1,QUEUE2,QUEUE3 queue
 ```
 
 ### 🎯 SBDR Agent Capabilities
@@ -313,35 +300,23 @@ Focused on **post-purchase** value optimization:
 
 ### Real-time Dashboard
 
-```mermaid
-graph LR
-    subgraph "Agent Performance Metrics"
-        A1[🤖 SBDR Agent<br/>Qualification Rate: 68%<br/>Avg Response Time: 1.2s<br/>Sessions Today: 342]
-        A2[👔 Account Manager<br/>Conversion Rate: 45%<br/>Avg Order Value: $1,247<br/>Active Customers: 89]
-        A3[⭐ Customer Success<br/>Satisfaction Score: 4.7/5<br/>Retention Rate: 92%<br/>Health Score: 85%]
-    end
-    
-    subgraph "System Health"
-        S1[⚡ Response Times<br/>P95: 2.1s<br/>P99: 4.3s<br/>Errors: 0.02%]
-        S2[🔗 Integrations<br/>Shopify: ✅ 99.9%<br/>Crisp: ✅ 99.8%<br/>OpenAI: ✅ 99.7%]
-        S3[💾 Data Layer<br/>PostgreSQL: ✅<br/>Redis Hit Rate: 94%<br/>Cache Efficiency: High]
-    end
-    
-    subgraph "Business KPIs"
-        K1[🎯 Lead Generation<br/>New Prospects: 156<br/>Qualified Leads: 89<br/>Conversion: 57%]
-        K2[💰 Revenue Impact<br/>Orders Today: 23<br/>Revenue: $28,681<br/>AOV: $1,247]
-        K3[😊 Customer Experience<br/>CSAT: 4.6/5<br/>First Response: 45s<br/>Resolution Rate: 94%]
-    end
-    
-    %% Styling
-    classDef agent fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef system fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef business fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    
-    class A1,A2,A3 agent
-    class S1,S2,S3 system
-    class K1,K2,K3 business
-```
+| 🤖 **SBDR Agent** | 👔 **Account Manager** | ⭐ **Customer Success** |
+|-------------------|------------------------|------------------------|
+| Qualification Rate: **68%** | Conversion Rate: **45%** | Satisfaction Score: **4.7/5** |
+| Avg Response Time: **1.2s** | Avg Order Value: **$1,247** | Retention Rate: **92%** |
+| Sessions Today: **342** | Active Customers: **89** | Health Score: **85%** |
+
+| ⚡ **System Health** | 🔗 **Integrations** | 💾 **Data Layer** |
+|---------------------|---------------------|-------------------|
+| P95: **2.1s** | Shopify: ✅ **99.9%** | PostgreSQL: ✅ |
+| P99: **4.3s** | Crisp: ✅ **99.8%** | Redis Hit Rate: **94%** |
+| Errors: **0.02%** | OpenAI: ✅ **99.7%** | Cache Efficiency: **High** |
+
+| 🎯 **Lead Generation** | 💰 **Revenue Impact** | 😊 **Customer Experience** |
+|------------------------|------------------------|----------------------------|
+| New Prospects: **156** | Orders Today: **23** | CSAT: **4.6/5** |
+| Qualified Leads: **89** | Revenue: **$28,681** | First Response: **45s** |
+| Conversion: **57%** | AOV: **$1,247** | Resolution Rate: **94%** |
 
 ### Key Performance Indicators
 
